@@ -1,18 +1,14 @@
 /*
+ * ROFS is used to access an underlying directory in read-only mode
+ * > all read accesses are delegated to the underlying directory
+ * > all write accesses are denied
+*/
+
+/*
  * ROFS - The read-only filesystem for FUSE.
  * Copyright 2005,2006,2008 Matthew Keller. kellermg@potsdam.edu and others.
  * v2008.09.24
- *
- * Mount any filesytem, or folder tree read-only, anywhere else.
- * No warranties. No guarantees. No lawyers.
- *
- * I read (and borrowed) a lot of other FUSE code to write this.
- * Similarities possibly exist- Wholesale reuse as well of other GPL code.
- * Special mention to Rémi Flament and his loggedfs.
- *
- * Consider this code GPLv2.
- *
- * Compile: gcc rofs.c -o rofs -Wall -ansi -W -std=c99 -g -ggdb -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -lfuse 
+ * Compile: gcc rofs.c -o rofs -Wall -ansi -W -std=c99 -g -ggdb -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -lfuse
  * Mount: rofs readwrite_filesystem mount_point
  *
  */
