@@ -34,14 +34,19 @@ HOW TO RUN rofs.c:
           option 2: ./rofs test1 test2  (only one of these might be useful)
 3- Additional commands: ls -l and grep rofs /etc/mtab
 
+COMPLETED STAGES:
+1- Skim the slides and add comments to the source codes
+2- Compile & run: hello.c, rofs.c
+3- Create documentation
+4- Prepare a basic website folder
+
 
 FURTHER STAGES:
 1- In rofs.c; Try to,
 	I - Create a file and/or directory under test1 (for those, HelloWorldCodeExplanation.pdf might be useful)
 	I - Create a file and/or directory under test2
 	II - Modify a file test2
-2- Prepare a basic directory with some files to be used by fuse in the next steps.
-3- Determine which file operations are needed for which actions of the application.
-...
+2- Determine which file operations are needed for which actions of the application.
+..
 
 
