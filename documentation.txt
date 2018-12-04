@@ -50,3 +50,6 @@ FURTHER STAGES:
 ..
 
 
+*Implement HTML Tidy, and create a not-tidy version of home.html file (to be tidied by rofs)
+
+
