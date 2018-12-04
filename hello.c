@@ -83,11 +83,12 @@ static int hello_read(const char *path, char *buf, size_t size, off_t offset,
     return size;
 }
 
+// map system calls to functions
 static struct fuse_operations hello_oper = {
-    .getattr	= hello_getattr,
-    .readdir	= hello_readdir,
-    .open	= hello_open,
-    .read	= hello_read,
+        .getattr	= hello_getattr, // read file attributes
+        .readdir	= hello_readdir, // list directory
+        .open	= hello_open, // open file
+        .read	= hello_read, // read from file
 };
 
 int main(int argc, char *argv[])
