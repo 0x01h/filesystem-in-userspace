@@ -1,0 +1,47 @@
+Project Documentation 
+/ How to Use & Further Stages /
+Contents
+1- Installation
+2- How to run hello.c
+3- How to run rofs.c
+4- Further Stages
+
+
+INSTALLATION
+* Install FUSE: libfuse-dev
+
+
+HOW TO RUN hello.c:
+* To run hello.c;
+> Compile: gcc hello.c -o hello
+> Create a temporary directory: mkdir asd
+> Execute hello.o: ./hello asd/ 
+  asd, is the "mount point"
+hello.c then creates a file called "hello" inside the mount point.
+> Check the temporary directory: ls asd/
+  This should list a file called "hello".
+> Inside the file there will be a sentence, "Hello Wsdsorld!": cat asd/hello 
+  This should show the content of the "hello" file.
+
+These values are defined as constants in hello.c;
+static const char *hello_str = "Hello Wsdsorld!\n";
+static const char *hello_path = "/hello";
+
+
+HOW TO RUN rofs.c:
+1- Compile: gcc rofs.c -o rofs -Wall -ansi -W -std=c99 -g -ggdb -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -lfuse 
+2- Mount, option 1: ./rofs readwrite_filesystem mount_point
+          option 2: ./rofs test1 test2  (only one of these might be useful)
+3- Additional commands: ls -l and grep rofs /etc/mtab
+
+
+FURTHER STAGES:
+1- In rofs.c;
+	I - Create a file and/or directory under test1 (for those, HelloWorldCodeExplanation.pdf might be useful)
+	I - Create a file and/or directory under test2
+	II - Modify a file test2
+2- Prepare a basic directory with some files to be used by fuse in the next steps.
+3- Determine which file operations are needed for which actions of the application.
+...
+
+
