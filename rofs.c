@@ -35,7 +35,7 @@ static const char* rofsVersion = "2008.09.24";
 #include <sys/xattr.h>
 #include <dirent.h>
 #include <unistd.h>
-#include <fuse.h>
+#include <fuse.h> // include fuse library functions
 
 
 // Global to store our read-write path
@@ -363,33 +363,33 @@ static int rofs_removexattr(const char *path, const char *name)
 }
 
 struct fuse_operations rofs_oper = {
-    .getattr     = rofs_getattr,
-    .readlink    = rofs_readlink,
-    .readdir     = rofs_readdir,
-    .mknod       = rofs_mknod,
-    .mkdir       = rofs_mkdir,
-    .symlink     = rofs_symlink,
-    .unlink      = rofs_unlink,
-    .rmdir       = rofs_rmdir,
-    .rename      = rofs_rename,
-    .link        = rofs_link,
-    .chmod       = rofs_chmod,
-    .chown       = rofs_chown,
-    .truncate    = rofs_truncate,
-    .utime       = rofs_utime,
-    .open        = rofs_open,
-    .read        = rofs_read,
-    .write       = rofs_write,
-    .statfs      = rofs_statfs,
-    .release     = rofs_release,
-    .fsync       = rofs_fsync,
-    .access      = rofs_access,
+        .getattr     = rofs_getattr,
+        .readlink    = rofs_readlink,
+        .readdir     = rofs_readdir, // read contents of the directory
+        .mknod       = rofs_mknod, // create a file node. this will be called for all non-directory, non-symlink nodes
+        .mkdir       = rofs_mkdir, // make directory
+        .symlink     = rofs_symlink,
+        .unlink      = rofs_unlink, // remove a file
+        .rmdir       = rofs_rmdir, // remove directory
+        .rename      = rofs_rename, // rename a file
+        .link        = rofs_link, // create a hard link for a file
+        .chmod       = rofs_chmod,
+        .chown       = rofs_chown,
+        .truncate    = rofs_truncate,
+        .utime       = rofs_utime,
+        .open        = rofs_open, // file open operation
+        .read        = rofs_read, // read data from an open file
+        .write       = rofs_write, // write data to an open file
+        .statfs      = rofs_statfs, // get filesystem statistics
+        .release     = rofs_release, // release an open file, each opened file must be released
+        .fsync       = rofs_fsync, // synchronize file contents
+        .access      = rofs_access,
 
-    /* Extended attributes support for userland interaction */
-    .setxattr    = rofs_setxattr,
-    .getxattr    = rofs_getxattr,
-    .listxattr   = rofs_listxattr,
-    .removexattr = rofs_removexattr
+        /* Extended attributes support for userland interaction */
+        .setxattr    = rofs_setxattr, // set extended attributes
+        .getxattr    = rofs_getxattr, // get extended attributes
+        .listxattr   = rofs_listxattr, // list extended attributes
+        .removexattr = rofs_removexattr // remove extended attributes
 };
 enum {
     KEY_HELP,
@@ -417,37 +417,37 @@ static int rofs_parse_opt(void *data, const char *arg, int key,
 
     switch (key)
     {
-    case FUSE_OPT_KEY_NONOPT:
-        if (rw_path == 0)
-        {
-            rw_path = strdup(arg);
-            return 0;
-        }
-        else
-        {
+        case FUSE_OPT_KEY_NONOPT:
+            if (rw_path == 0)
+            {
+                rw_path = strdup(arg);
+                return 0;
+            }
+            else
+            {
+                return 1;
+            }
+        case FUSE_OPT_KEY_OPT:
             return 1;
-        }
-    case FUSE_OPT_KEY_OPT:
-        return 1;
-    case KEY_HELP:
-        usage(outargs->argv[0]);
-        exit(0);
-    case KEY_VERSION:
-        fprintf(stdout, "ROFS version %s\n", rofsVersion);
-        exit(0);
-    default:
-        fprintf(stderr, "see `%s -h' for usage\n", outargs->argv[0]);
-        exit(1);
+        case KEY_HELP:
+            usage(outargs->argv[0]);
+            exit(0);
+        case KEY_VERSION:
+            fprintf(stdout, "ROFS version %s\n", rofsVersion);
+            exit(0);
+        default:
+            fprintf(stderr, "see `%s -h' for usage\n", outargs->argv[0]);
+            exit(1);
     }
     return 1;
 }
 
 static struct fuse_opt rofs_opts[] = {
-    FUSE_OPT_KEY("-h",          KEY_HELP),
-    FUSE_OPT_KEY("--help",      KEY_HELP),
-    FUSE_OPT_KEY("-V",          KEY_VERSION),
-    FUSE_OPT_KEY("--version",   KEY_VERSION),
-    FUSE_OPT_END
+        FUSE_OPT_KEY("-h",          KEY_HELP),
+        FUSE_OPT_KEY("--help",      KEY_HELP),
+        FUSE_OPT_KEY("-V",          KEY_VERSION),
+        FUSE_OPT_KEY("--version",   KEY_VERSION),
+        FUSE_OPT_END
 };
 
 int main(int argc, char *argv[])
@@ -469,7 +469,8 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    fuse_main(args.argc, args.argv, &rofs_oper, NULL);
+    // fuse_main(argc, argv, op, user_data)
+    fuse_main(args.argc, args.argv, &rofs_oper, NULL); // main function of fuse
 
     return 0;
 }
