@@ -17,7 +17,7 @@ HOW TO RUN hello.c:
 > Create a temporary directory: mkdir asd
 > Execute hello.o: ./hello asd/ 
   asd, is the "mount point"
-hello.c then creates a file called "hello" inside the mount point.
+  hello.c then creates a file called "hello" inside the mount point.
 > Check the temporary directory: ls asd/
   This should list a file called "hello".
 > Inside the file there will be a sentence, "Hello Wsdsorld!": cat asd/hello 
@@ -36,7 +36,7 @@ HOW TO RUN rofs.c:
 
 
 FURTHER STAGES:
-1- In rofs.c;
+1- In rofs.c; Try to,
 	I - Create a file and/or directory under test1 (for those, HelloWorldCodeExplanation.pdf might be useful)
 	I - Create a file and/or directory under test2
 	II - Modify a file test2
