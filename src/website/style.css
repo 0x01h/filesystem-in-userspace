@@ -1,0 +1,28 @@
+h1 {
+    color: orangered;
+}
+
+header {
+    text-align: right;
+}
+
+html,
+body {
+    height: 100%;
+    position: relative;
+}
+
+body::after {
+    content: '';
+    display: block;
+    height: 50px;
+}
+
+footer {
+    color: gray;
+    clear: both;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 50px;
+}
