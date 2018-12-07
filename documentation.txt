@@ -4,7 +4,8 @@ Contents
 1- Installation
 2- How to run hello.c
 3- How to run rofs.c
-4- Further Stages
+4- How to implement mirror folder
+5- Further Stages
 
 
 INSTALLATION
@@ -31,25 +32,26 @@ static const char *hello_path = "/hello";
 HOW TO RUN rofs.c:
 1- Compile: gcc rofs.c -o rofs -Wall -ansi -W -std=c99 -g -ggdb -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -lfuse 
 2- Mount, option 1: ./rofs readwrite_filesystem mount_point
-          option 2: ./rofs test1 test2  (only one of these might be useful)
-3- Additional commands: ls -l and grep rofs /etc/mtab
+          option 2: ./rofs test1 test2
+3- Additional commands: "ls -l" and "grep rofs /etc/mtab"
 
 COMPLETED STAGES:
 1- Skim the slides and add comments to the source codes
 2- Compile & run: hello.c, rofs.c
 3- Create documentation
 4- Prepare a basic website folder
+5- Implement FUSE system as requested: 
+	- mirror a folder with same structure
+	- make mirrored folder read only 
+	- reflect any changes immediately
 
+HOW TO IMPLEMENT MIRROR FOLDER:
+1- Compile rofs.c: gcc rofs.c -o rofs -Wall -ansi -W -std=c99 -g -ggdb -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -lfuse
+2- Create a mirror folder manually: you can name it as "mirror"
+3- Mount rofs, specialized for the purpose: ./rofs -d website/ mirror/
+This should take half a minute to complete. Then you can access the mirrored folder. As said above, mirror folder has the same structure, is read only and reflects any changes immediately.
 
 FURTHER STAGES:
-1- In rofs.c; Try to,
-	I - Create a file and/or directory under test1 (for those, HelloWorldCodeExplanation.pdf might be useful)
-	I - Create a file and/or directory under test2
-	II - Modify a file test2
-2- Determine which file operations are needed for which actions of the application.
-..
-
-
-*Implement HTML Tidy, and create a not-tidy version of home.html file (to be tidied by rofs)
-
+1- Implement HTML Tidy, and create a not-tidy version of home.html file (to be tidied by rofs)
+2- Review and upload.
 
