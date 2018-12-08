@@ -32,6 +32,8 @@ static const char* rofsVersion = "2008.09.24";
 #include <dirent.h>
 #include <unistd.h>
 #include <fuse.h> // include fuse library functions
+//#include <tidy.h>
+//#include <buffio.h>
 
 
 // Global to store our read-write path
@@ -241,6 +243,35 @@ static int rofs_read(const char *path, char *buf, size_t size, off_t offset, str
         res = -errno;
     }
     close(fd);
+   /*
+  	TidyBuffer output = {0};
+  	TidyBuffer errbuf = {0};
+  	int rc = -1;
+  	Bool ok;
+
+  	TidyDoc tdoc = tidyCreate();                     // Initialize "document"
+  	printf( "Tidying:\t%s\n", input );
+
+	ok = tidyOptSetBool( tdoc, TidyXhtmlOut, yes );  // Convert to XHTML
+  	if ( ok )
+    		rc = tidySetErrorBuffer( tdoc, &errbuf );      // Capture diagnostics
+  	if ( rc >= 0 )
+    		rc = tidyParseString( tdoc, buf );           // Parse the input
+  	if ( rc >= 0 )
+    		rc = tidyCleanAndRepair( tdoc );               // Tidy it up!
+  	if ( rc >= 0 )
+    		rc = tidyRunDiagnostics( tdoc );               // Kvetch
+  	if ( rc > 1 )                                    // If error, force output.
+    		rc = ( tidyOptSetBool(tdoc, TidyForceOutput, yes) ? rc : -1 );
+  	if ( rc >= 0 )
+		//önce bufı boşaltıp yeni sizea göre yer açmak gerekebilir.
+    		rc = tidySaveString( tdoc, buf, size);          // tidy hali buf'a yazma
+		//or
+		rc = tidySaveFile( tdoc, mirrorfilename);          // Doğrudan  miror dosyaya yazma 
+  	tidyBufFree( &output );
+	tidyBufFree( &errbuf );
+  	tidyRelease( tdoc );
+   */
     return res;
 }
 
