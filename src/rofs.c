@@ -265,9 +265,14 @@ static int rofs_read(const char *path, char *buf, size_t size, off_t offset, str
     		rc = ( tidyOptSetBool(tdoc, TidyForceOutput, yes) ? rc : -1 );
   	if ( rc >= 0 )
 		//önce bufı boşaltıp yeni sizea göre yer açmak gerekebilir.
-    		rc = tidySaveString( tdoc, buf, size);          // tidy hali buf'a yazma
+			free(buf);
+    		rc = tidySaveString( tdoc, buf, size);          // tidy hali buf'a yazma(size = ?)
 		//or
-		rc = tidySaveFile( tdoc, mirrorfilename);          // Doğrudan  miror dosyaya yazma 
+			rc = tidySaveFile( tdoc, mirrorfilename);          // Doğrudan  mirror dosyaya yazma 
+		//or
+			rc = tidySaveBuffer( tdoc, &amp;output );
+			buf = (char *)malloc(strlen(output.bp));
+			strcpy(buf, output.bp);
   	tidyBufFree( &output );
 	tidyBufFree( &errbuf );
   	tidyRelease( tdoc );
