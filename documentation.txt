@@ -2,31 +2,16 @@ PROJECT DOCUMENTATION
 
 CONTENTS
 1- Installation of FUSE
-2- Usage of hello.c
-3- Usage of rofs.c
-4- Installation of html-tidy
-5- Implementation of Mirror Folder
-6- Further Stages
-7- Helpers
+2- Usage of rofs.c
+3- Installation of html-tidy
+4- Implementation of Mirror Folder
+5- Helpers
 
 INSTALLATION OF FUSE
 $ sudo apt install libfuse-dev
 
-USAGE OF HELLO.C
-1) Compile: "gcc hello.c -o hello -Wall -ansi -W -std=c99 -g -ggdb -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -lfuse"
-2) Create a temporary directory: "mkdir tmp"
-3) Execute hello.o: 
-  "./hello tmp"
-  tmp, is the "mount point"
-  hello.c then creates a file called "hello" inside the mount point.
-4) Check the temporary directory: ls tmp
-  This should list a file called "hello".
-5) Inside the file there will be a sentence, "Hello World!": 
-  "cat tmp/hello"
-6) To unmount filesystem use "fusermount -u tmp".
-
 USAGE OF ROFS.C
-1) Compile: "gcc rofs.c -o rofs -Wall -ansi -W -std=c99 -g -ggdb -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -lfuse"
+1) Compile: "gcc rofs.c -o rofs -Wall -ansi -W -std=c99 -g -ggdb -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -lfuse -ltidy"
 2) Mount, Option 1: "./rofs readwrite_filesystem mount_point"
           Option 2: "./rofs test1 test2"
 3) Additional commands: "ls -l" and "grep rofs /etc/mtab"
@@ -39,27 +24,13 @@ INSTALLATION OF HTML-TIDY
 2) #include <tidy/tidy.h> #include <tidy/buffio.h>
 3) $ gcc tidy.c -ltidy
 
-COMPLETED STAGES
-1) Skim the slides and add comments to the source codes.
-2) Compile & run: hello.c, rofs.c
-3) Create documentation.
-4) Prepare a basic website folder.
-5) Implement FUSE system as requested: 
-	- Mirror a folder with same structure.
-	- Make mirrored folder read only.
-	- Reflect any changes immediately.
-
 IMPLEMENTATION OF MIRROR FOLDER
-1) Compile rofs.c: "gcc rofs.c -o rofs -Wall -ansi -W -std=c99 -g -ggdb -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -lfuse"
+1) Compile rofs.c: "gcc rofs.c -o rofs -Wall -ansi -W -std=c99 -g -ggdb -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -lfuse -ltidy"
 2) Manually create a folder that will mirror another folder: you can name it as "mirror".
 3) Mount rofs, specialized for the purpose: "./rofs -d website/ mirror/"
 This should take half a minute to complete. 
 Then you can access the mirrored folder. 
 As said above, mirror folder has the same structure, is read only and reflects any changes immediately.
-
-FURTHER STAGES
-1- Implement HTML Tidy, and create a not-tidy version of home.html file (to be tidied by rofs).
-2- Review and upload.
 
 HELPERS
 Permission    Action      chmod option
