@@ -32,8 +32,8 @@ static const char* rofsVersion = "2008.09.24";
 #include <dirent.h> // format of directory entries 
 #include <unistd.h>
 #include <fuse.h> // include fuse library functions
-//#include <tidy/tidy.h>
-//#include <tidy/buffio.h>
+#include <tidy/tidy.h>
+#include <tidy/buffio.h>
 
 // Global to store our read-write path
 char *rw_path;
@@ -242,14 +242,13 @@ static int rofs_read(const char *path, char *buf, size_t size, off_t offset, str
         res = -errno;
     }
     close(fd);
-   /*
+
   	TidyBuffer output = {0};
   	TidyBuffer errbuf = {0};
   	int rc = -1;
   	Bool ok;
 
   	TidyDoc tdoc = tidyCreate();                     // Initialize "document"
-  	printf( "Tidying:\t%s\n", input );
 
 	ok = tidyOptSetBool( tdoc, TidyXhtmlOut, yes );  // Convert to XHTML
   	if ( ok )
@@ -262,20 +261,24 @@ static int rofs_read(const char *path, char *buf, size_t size, off_t offset, str
     		rc = tidyRunDiagnostics( tdoc );               // Kvetch
   	if ( rc > 1 )                                    // If error, force output.
     		rc = ( tidyOptSetBool(tdoc, TidyForceOutput, yes) ? rc : -1 );
+	if ( rc >= 0 )
+       		 rc = tidySaveBuffer( tdoc, &output );        // Pretty Print
   	if ( rc >= 0 )
 		//önce bufı boşaltıp yeni sizea göre yer açmak gerekebilir.
 			free(buf);
-    		rc = tidySaveString( tdoc, buf, size);          // tidy hali buf'a yazma(size = ?)
+			char * newSize = output.bp;
+			buf = (char *)malloc(strlen(newSize));
+    			rc = tidySaveString( tdoc, buf, &size);          // tidy hali buf'a yazma(size = ?)
 		//or
-			rc = tidySaveFile( tdoc, mirrorfilename);          // Doğrudan  mirror dosyaya yazma 
+			//rc = tidySaveFile( tdoc, mirrorfilename);          // Doğrudan  mirror dosyaya yazma 
 		//or
-			rc = tidySaveBuffer( tdoc, &amp;output );
-			buf = (char *)malloc(strlen(output.bp));
-			strcpy(buf, output.bp);
+			//rc = tidySaveBuffer( tdoc, &amp;output );
+			//buf = (char *)malloc(strlen(output.bp));
+			//strcpy(buf, output.bp);
   	tidyBufFree( &output );
 	tidyBufFree( &errbuf );
   	tidyRelease( tdoc );
-   */
+
     return res;
 }
 
