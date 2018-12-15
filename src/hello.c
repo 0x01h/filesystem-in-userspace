@@ -12,11 +12,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <fcntl.h>
+#include <fcntl.h>  // Manipulate file descriptor.
 
 static const char *hello_str = "Hello World!\n";
 static const char *hello_path = "/hello";
 
+// ls -l
 static int hello_getattr(const char *path, struct stat *stbuf)  // Stat struct keeps information about a file.
 {
     int res = 0;
@@ -37,6 +38,7 @@ static int hello_getattr(const char *path, struct stat *stbuf)  // Stat struct k
     return res;
 }
 
+// ls
 static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
                          off_t offset, struct fuse_file_info *fi)
 {
@@ -53,6 +55,8 @@ static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     return 0;
 }
 
+
+// cd
 static int hello_open(const char *path, struct fuse_file_info *fi)
 {
     if (strcmp(path, hello_path) != 0)
@@ -64,6 +68,7 @@ static int hello_open(const char *path, struct fuse_file_info *fi)
     return 0;
 }
 
+// cat
 static int hello_read(const char *path, char *buf, size_t size, off_t offset,
                       struct fuse_file_info *fi)
 {
@@ -85,10 +90,10 @@ static int hello_read(const char *path, char *buf, size_t size, off_t offset,
 
 // map system calls to functions
 static struct fuse_operations hello_oper = {
-        .getattr	= hello_getattr, // read file attributes
-        .readdir	= hello_readdir, // list directory
-        .open	= hello_open, // open file
-        .read	= hello_read, // read from file
+        .getattr	= hello_getattr, // read file attributes "ls -l"
+        .readdir	= hello_readdir, // list directory "ls"
+        .open	= hello_open, // open file "cd"
+        .read	= hello_read, // read from file "cat"
 };
 
 int main(int argc, char *argv[])

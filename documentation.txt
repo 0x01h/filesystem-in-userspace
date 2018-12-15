@@ -78,3 +78,14 @@ Symbolic Notation    Octal Notation    English
 -r-xr-xr-x            0555               read & execute
 -rw-rw-rw-            0666               read & write
 -rwxrwxrwx            0777               read. write & execute
+
+Links in Linux/Unix
+Link are of two types: soft links (symbolic links) or hard links.
+
+Soft Links (symbolic links)
+You can make links to files and directories, and you can create links (shortcuts) on different partition and with a different inode number from original.
+If the real copy is deleted, the link will not work.
+
+Hard Links
+Hard links are for files only; you cannot link to a file on different partition with a different inode number.
+If the real copy is deleted the link will work, because it accesses the underlying data the real copy was accessing.
