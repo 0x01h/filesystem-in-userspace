@@ -1,28 +1,18 @@
-/*
- * ROFS is used to access an underlying directory in read-only mode
- * > all read accesses are delegated to the underlying directory
- * > all write accesses are denied
-*/
-
-/*
- * ROFS - The read-only filesystem for FUSE.
- * Copyright 2005,2006,2008 Matthew Keller. kellermg@potsdam.edu and others.
- * v2008.09.24
- * Compile: gcc rofs.c -o rofs -Wall -ansi -W -std=c99 -g -ggdb -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -lfuse
- * Mount: rofs readwrite_filesystem mount_point
- *
- */
-
+/*****************************************************************************************************************
+ Compile: $ gcc tidier.c -o tidier -Wall -ansi -W -std=c99 -g -ggdb -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -lfuse -ltidy
+ Mount: $ tidier -d website mount_point
+******************************************************************************************************************/
 
 #define FUSE_USE_VERSION 26
 
-static const char* rofsVersion = "2008.09.24";
+static const char* tidierVersion = "1.0.0";
 
 #include <sys/types.h>  // unix data types
 #include <sys/stat.h>  // file attributes/stats
 #include <sys/statvfs.h>  // get mounted filesystem stats
 #include <stdio.h>
 #include <strings.h>
+#include <string.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -32,16 +22,16 @@ static const char* rofsVersion = "2008.09.24";
 #include <dirent.h> // format of directory entries 
 #include <unistd.h>
 #include <fuse.h> // include fuse library functions
-#include <tidy/tidy.h>
-#include <tidy/buffio.h>
+#include <tidy/tidy.h>  // html-tidy library functions
+#include <tidy/buffio.h>  // treat buffer as input/output
 
 // Global to store our read-write path
 char *rw_path;
 
-// Translate an rofs path into it's underlying filesystem path
+// Translate a virtual path into its underlying filesystem path
 static char* translate_path(const char* path)
 {
-
+    printf("I'm translating your path!\n");
     char *rPath= malloc(sizeof(char)*(strlen(path)+strlen(rw_path)+1));
 
     strcpy(rPath,rw_path);
@@ -54,8 +44,9 @@ static char* translate_path(const char* path)
 }
 
 // ls -l
-static int rofs_getattr(const char *path, struct stat *st_data)
+static int tidier_getattr(const char *path, struct stat *st_data)
 {
+    printf("I'm getting your attributes!\n");
     int res;
     char *upath=translate_path(path);
 
@@ -67,7 +58,7 @@ static int rofs_getattr(const char *path, struct stat *st_data)
     return 0;
 }
 
-static int rofs_readlink(const char *path, char *buf, size_t size)
+static int tidier_readlink(const char *path, char *buf, size_t size)
 {
     int res;
     char *upath=translate_path(path);
@@ -82,16 +73,23 @@ static int rofs_readlink(const char *path, char *buf, size_t size)
 }
 
 // ls
-static int rofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,off_t offset, struct fuse_file_info *fi)
+static int tidier_readdir(const char *path, void *buf, fuse_fill_dir_t filler,off_t offset, struct fuse_file_info *fi)
 {
     DIR *dp;
     struct dirent *de;
     int res;
+    int counter = 0;
+    char *filename;
+    char *file_extension;
+    char *selected_extension = ' ';
+    char *html = 'html';
 
     (void) offset;
     (void) fi;
 
     char *upath=translate_path(path);
+    printf("FILE'S PATH (DIR): ");
+    printf("%s\n", upath);
 
     dp = opendir(upath);
     free(upath);
@@ -105,8 +103,31 @@ static int rofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,off_
         memset(&st, 0, sizeof(st));
         st.st_ino = de->d_ino;
         st.st_mode = de->d_type << 12;
+
         if (filler(buf, de->d_name, &st, 0))
             break;
+
+/*
+        filename = strdup(de->d_name);
+        printf("filename: %s\n", filename);
+        while ((file_extension = strsep(&filename, ".")) != NULL) {
+            if (counter == 0) {
+                counter++;
+            }
+            else if (counter == 1) {
+                printf("ext: %s", file_extension);
+                selected_extension = file_extension;
+                break;
+            }
+            else {
+                break;
+            }
+        }
+
+        counter = 0;
+        printf("SELECTED: %s\n", selected_extension);
+*/
+
     }
 
     closedir(dp);
@@ -114,7 +135,7 @@ static int rofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,off_
 }
 
 // touch
-static int rofs_mknod(const char *path, mode_t mode, dev_t rdev)
+static int tidier_mknod(const char *path, mode_t mode, dev_t rdev)
 {
     (void)path;
     (void)mode;
@@ -123,14 +144,15 @@ static int rofs_mknod(const char *path, mode_t mode, dev_t rdev)
 }
 
 // mkdir
-static int rofs_mkdir(const char *path, mode_t mode)
+static int tidier_mkdir(const char *path, mode_t mode)
 {
     (void)path;
     (void)mode;
     return -EROFS;
 }
 
-static int rofs_unlink(const char *path)
+// rm
+static int tidier_unlink(const char *path)
 {
     (void)path;
     return -EROFS;
@@ -138,7 +160,7 @@ static int rofs_unlink(const char *path)
 
 
 // rmdir
-static int rofs_rmdir(const char *path)
+static int tidier_rmdir(const char *path)
 {
     (void)path;
     return -EROFS;
@@ -146,7 +168,7 @@ static int rofs_rmdir(const char *path)
 
 
 // ln -s
-static int rofs_symlink(const char *from, const char *to)
+static int tidier_symlink(const char *from, const char *to)
 {
     (void)from;
     (void)to;
@@ -154,21 +176,22 @@ static int rofs_symlink(const char *from, const char *to)
 }
 
 // rename
-static int rofs_rename(const char *from, const char *to)
+static int tidier_rename(const char *from, const char *to)
 {
     (void)from;
     (void)to;
     return -EROFS;
 }
 
-static int rofs_link(const char *from, const char *to)
+// ln  -l
+static int tidier_link(const char *from, const char *to)
 {
     (void)from;
     (void)to;
     return -EROFS;
 }
 
-static int rofs_chmod(const char *path, mode_t mode)
+static int tidier_chmod(const char *path, mode_t mode)
 {
     (void)path;
     (void)mode;
@@ -176,7 +199,7 @@ static int rofs_chmod(const char *path, mode_t mode)
 
 }
 
-static int rofs_chown(const char *path, uid_t uid, gid_t gid)
+static int tidier_chown(const char *path, uid_t uid, gid_t gid)
 {
     (void)path;
     (void)uid;
@@ -184,30 +207,29 @@ static int rofs_chown(const char *path, uid_t uid, gid_t gid)
     return -EROFS;
 }
 
-static int rofs_truncate(const char *path, off_t size)
+static int tidier_truncate(const char *path, off_t size)
 {
     (void)path;
     (void)size;
     return -EROFS;
 }
 
-static int rofs_utime(const char *path, struct utimbuf *buf)
+static int tidier_utime(const char *path, struct utimbuf *buf)
 {
     (void)path;
     (void)buf;
     return -EROFS;
 }
 
-static int rofs_open(const char *path, struct fuse_file_info *finfo)
+static int tidier_open(const char *path, struct fuse_file_info *finfo)
 {
     int res;
 
-    /* We allow opens, unless they're tring to write, sneaky
-     * people.
-     */
     int flags = finfo->flags;
 
-    if ((flags & O_WRONLY) || (flags & O_RDWR) || (flags & O_CREAT) || (flags & O_EXCL) || (flags & O_TRUNC) || (flags & O_APPEND)) {
+    if ((flags & O_WRONLY) || (flags & O_RDWR) || 
+    (flags & O_CREAT) || (flags & O_EXCL) || 
+    (flags & O_TRUNC) || (flags & O_APPEND)) {
         return -EROFS;
     }
 
@@ -223,13 +245,15 @@ static int rofs_open(const char *path, struct fuse_file_info *finfo)
     return 0;
 }
 
-static int rofs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *finfo)
+static int tidier_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *finfo)
 {
     int fd;
     int res;
     (void)finfo;
 
     char *upath=translate_path(path);
+    printf("FILE'S PATH: ");
+    printf("%s\n", *upath);
     fd = open(upath, O_RDONLY);
     free(upath);
     if(fd == -1) {
@@ -285,7 +309,7 @@ static int rofs_read(const char *path, char *buf, size_t size, off_t offset, str
     return res;
 }
 
-static int rofs_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *finfo)
+static int tidier_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *finfo)
 {
     (void)path;
     (void)buf;
@@ -295,7 +319,7 @@ static int rofs_write(const char *path, const char *buf, size_t size, off_t offs
     return -EROFS;
 }
 
-static int rofs_statfs(const char *path, struct statvfs *st_buf)
+static int tidier_statfs(const char *path, struct statvfs *st_buf)
 {
     int res;
     char *upath=translate_path(path);
@@ -308,14 +332,14 @@ static int rofs_statfs(const char *path, struct statvfs *st_buf)
     return 0;
 }
 
-static int rofs_release(const char *path, struct fuse_file_info *finfo)
+static int tidier_release(const char *path, struct fuse_file_info *finfo)
 {
     (void) path;
     (void) finfo;
     return 0;
 }
 
-static int rofs_fsync(const char *path, int crap, struct fuse_file_info *finfo)
+static int tidier_fsync(const char *path, int crap, struct fuse_file_info *finfo)
 {
     (void) path;
     (void) crap;
@@ -323,14 +347,11 @@ static int rofs_fsync(const char *path, int crap, struct fuse_file_info *finfo)
     return 0;
 }
 
-static int rofs_access(const char *path, int mode)
+static int tidier_access(const char *path, int mode)
 {
     int res;
     char *upath=translate_path(path);
 
-    /* Don't pretend that we allow writing
-     * Chris AtLee <chris@atlee.ca>
-     */
     if (mode & W_OK)
         return -EROFS;
 
@@ -345,7 +366,7 @@ static int rofs_access(const char *path, int mode)
 /*
  * Set the value of an extended attribute
  */
-static int rofs_setxattr(const char *path, const char *name, const char *value, size_t size, int flags)
+static int tidier_setxattr(const char *path, const char *name, const char *value, size_t size, int flags)
 {
     (void)path;
     (void)name;
@@ -358,7 +379,7 @@ static int rofs_setxattr(const char *path, const char *name, const char *value, 
 /*
  * Get the value of an extended attribute.
  */
-static int rofs_getxattr(const char *path, const char *name, char *value, size_t size)
+static int tidier_getxattr(const char *path, const char *name, char *value, size_t size)
 {
     int res;
 
@@ -374,7 +395,7 @@ static int rofs_getxattr(const char *path, const char *name, char *value, size_t
 /*
  * List the supported extended attributes.
  */
-static int rofs_listxattr(const char *path, char *list, size_t size)
+static int tidier_listxattr(const char *path, char *list, size_t size)
 {
     int res;
 
@@ -391,7 +412,7 @@ static int rofs_listxattr(const char *path, char *list, size_t size)
 /*
  * Remove an extended attribute.
  */
-static int rofs_removexattr(const char *path, const char *name)
+static int tidier_removexattr(const char *path, const char *name)
 {
     (void)path;
     (void)name;
@@ -399,34 +420,34 @@ static int rofs_removexattr(const char *path, const char *name)
 
 }
 
-struct fuse_operations rofs_oper = {
-        .getattr     = rofs_getattr,
-        .readlink    = rofs_readlink,
-        .readdir     = rofs_readdir, // read contents of the directory
-        .mknod       = rofs_mknod, // create a file node. this will be called for all non-directory, non-symlink nodes
-        .mkdir       = rofs_mkdir, // make directory
-        .symlink     = rofs_symlink,
-        .unlink      = rofs_unlink, // remove a file
-        .rmdir       = rofs_rmdir, // remove directory
-        .rename      = rofs_rename, // rename a file
-        .link        = rofs_link, // create a hard link for a file
-        .chmod       = rofs_chmod,
-        .chown       = rofs_chown,
-        .truncate    = rofs_truncate,
-        .utime       = rofs_utime,
-        .open        = rofs_open, // file open operation
-        .read        = rofs_read, // read data from an open file
-        .write       = rofs_write, // write data to an open file
-        .statfs      = rofs_statfs, // get filesystem statistics
-        .release     = rofs_release, // release an open file, each opened file must be released
-        .fsync       = rofs_fsync, // synchronize file contents
-        .access      = rofs_access,
+struct fuse_operations tidier_oper = {
+        .getattr     = tidier_getattr,
+        .readlink    = tidier_readlink,
+        .readdir     = tidier_readdir, // read contents of the directory
+        .mknod       = tidier_mknod, // create a file node. this will be called for all non-directory, non-symlink nodes
+        .mkdir       = tidier_mkdir, // make directory
+        .symlink     = tidier_symlink,
+        .unlink      = tidier_unlink, // remove a file
+        .rmdir       = tidier_rmdir, // remove directory
+        .rename      = tidier_rename, // rename a file
+        .link        = tidier_link, // create a hard link for a file
+        .chmod       = tidier_chmod,
+        .chown       = tidier_chown,
+        .truncate    = tidier_truncate,
+        .utime       = tidier_utime,
+        .open        = tidier_open, // file open operation
+        .read        = tidier_read, // read data from an open file
+        .write       = tidier_write, // write data to an open file
+        .statfs      = tidier_statfs, // get filesystem statistics
+        .release     = tidier_release, // release an open file, each opened file must be released
+        .fsync       = tidier_fsync, // synchronize file contents
+        .access      = tidier_access,
 
         /* Extended attributes support for userland interaction */
-        .setxattr    = rofs_setxattr, // set extended attributes
-        .getxattr    = rofs_getxattr, // get extended attributes
-        .listxattr   = rofs_listxattr, // list extended attributes
-        .removexattr = rofs_removexattr // remove extended attributes
+        .setxattr    = tidier_setxattr, // set extended attributes
+        .getxattr    = tidier_getxattr, // get extended attributes
+        .listxattr   = tidier_listxattr, // list extended attributes
+        .removexattr = tidier_removexattr // remove extended attributes
 };
 enum {
     KEY_HELP,
@@ -447,7 +468,7 @@ static void usage(const char* progname)
             "\n", progname);
 }
 
-static int rofs_parse_opt(void *data, const char *arg, int key,
+static int tidier_parse_opt(void *data, const char *arg, int key,
                           struct fuse_args *outargs)
 {
     (void) data;
@@ -470,16 +491,16 @@ static int rofs_parse_opt(void *data, const char *arg, int key,
             usage(outargs->argv[0]);
             exit(0);
         case KEY_VERSION:
-            fprintf(stdout, "ROFS version %s\n", rofsVersion);
+            fprintf(stdout, "Tidier version %s\n", tidierVersion);
             exit(0);
         default:
-            fprintf(stderr, "see `%s -h' for usage\n", outargs->argv[0]);
+            fprintf(stderr, "See `%s -h' for usage.\n", outargs->argv[0]);
             exit(1);
     }
     return 1;
 }
 
-static struct fuse_opt rofs_opts[] = {
+static struct fuse_opt tidier_opts[] = {
         FUSE_OPT_KEY("-h",          KEY_HELP),
         FUSE_OPT_KEY("--help",      KEY_HELP),
         FUSE_OPT_KEY("-V",          KEY_VERSION),
@@ -492,22 +513,21 @@ int main(int argc, char *argv[])
     struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
     int res;
 
-    res = fuse_opt_parse(&args, &rw_path, rofs_opts, rofs_parse_opt);
+    res = fuse_opt_parse(&args, &rw_path, tidier_opts, tidier_parse_opt);
     if (res != 0)
     {
-        fprintf(stderr, "Invalid arguments\n");
-        fprintf(stderr, "see `%s -h' for usage\n", argv[0]);
+        fprintf(stderr, "Invalid arguments!\n");
+        fprintf(stderr, "see `%s -h' for usage.\n", argv[0]);
         exit(1);
     }
     if (rw_path == 0)
     {
-        fprintf(stderr, "Missing readwritepath\n");
-        fprintf(stderr, "see `%s -h' for usage\n", argv[0]);
+        fprintf(stderr, "Missing readwritepath!\n");
+        fprintf(stderr, "see `%s -h' for usage.\n", argv[0]);
         exit(1);
     }
 
-    // fuse_main(argc, argv, op, user_data)
-    fuse_main(args.argc, args.argv, &rofs_oper, NULL); // main function of fuse
+    fuse_main(args.argc, args.argv, &tidier_oper, NULL);
 
     return 0;
 }

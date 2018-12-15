@@ -1,7 +1,7 @@
 PROJECT DOCUMENTATION
 
 CONTENTS
-1- Installation
+1- Installation of FUSE
 2- Usage of hello.c
 3- Usage of rofs.c
 4- Installation of html-tidy
@@ -9,7 +9,7 @@ CONTENTS
 6- Further Stages
 7- Helpers
 
-INSTALLATION
+INSTALLATION OF FUSE
 $ sudo apt install libfuse-dev
 
 USAGE OF HELLO.C
