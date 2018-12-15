@@ -1,38 +1,28 @@
 PROJECT DOCUMENTATION
 
 CONTENTS
-1- Installation of FUSE
-2- Usage of rofs.c
-3- Installation of html-tidy
-4- Implementation of Mirror Folder
-5- Helpers
+1- Installation of Fuse
+2- Installation of Html-Tidy
+3- Usage of tidier.c
+4- Helpers
 
 INSTALLATION OF FUSE
 $ sudo apt install libfuse-dev
-
-USAGE OF ROFS.C
-1) Compile: "gcc rofs.c -o rofs -Wall -ansi -W -std=c99 -g -ggdb -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -lfuse -ltidy"
-2) Mount, Option 1: "./rofs readwrite_filesystem mount_point"
-          Option 2: "./rofs test1 test2"
-3) Additional commands: "ls -l" and "grep rofs /etc/mtab"
-4) To unmount filesystem use "fusermount -u mount_point".
-
-mtab: This file lists all currently mounted filesystems.
 
 INSTALLATION OF HTML-TIDY
 1) $ sudo apt install libtidy-dev
 2) #include <tidy/tidy.h> #include <tidy/buffio.h>
 3) $ gcc tidy.c -ltidy
 
-IMPLEMENTATION OF MIRROR FOLDER
-1) Compile rofs.c: "gcc rofs.c -o rofs -Wall -ansi -W -std=c99 -g -ggdb -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -lfuse -ltidy"
-2) Manually create a folder that will mirror another folder: you can name it as "mirror".
-3) Mount rofs, specialized for the purpose: "./rofs -d website/ mirror/"
-This should take half a minute to complete. 
-Then you can access the mirrored folder. 
-As said above, mirror folder has the same structure, is read only and reflects any changes immediately.
+USAGE OF TIDIER.C
+1) Compile: "$ gcc tidier.c -o tidier -Wall -ansi -W -std=c99 -g -ggdb -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -lfuse -ltidy"
+2) Mount: "$ ./tidier website mirror"
+3) Additional commands: "ls -l" and "grep tidier /etc/mtab"
+4) To unmount filesystem use "fusermount -u mirror".
 
 HELPERS
+mtab: This file lists all currently mounted filesystems.
+
 Permission    Action      chmod option
 ======================================
 read          (view)      r or 4
