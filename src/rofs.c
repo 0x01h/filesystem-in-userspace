@@ -18,23 +18,22 @@
 
 static const char* rofsVersion = "2008.09.24";
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/statvfs.h>
+#include <sys/types.h>  // unix data types
+#include <sys/stat.h>  // file attributes/stats
+#include <sys/statvfs.h>  // get mounted filesystem stats
 #include <stdio.h>
 #include <strings.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <errno.h>
-#include <fcntl.h>
-#include <sys/xattr.h>
-#include <dirent.h>
+#include <fcntl.h>  // manipulate file descriptions
+#include <sys/xattr.h>  // extended attributes
+#include <dirent.h> // format of directory entries 
 #include <unistd.h>
 #include <fuse.h> // include fuse library functions
-//#include <tidy.h>
-//#include <buffio.h>
-
+//#include <tidy/tidy.h>
+//#include <tidy/buffio.h>
 
 // Global to store our read-write path
 char *rw_path;
@@ -54,15 +53,7 @@ static char* translate_path(const char* path)
     return rPath;
 }
 
-
-/******************************
-*
-* Callbacks for FUSE
-*
-*
-*
-******************************/
-
+// ls -l
 static int rofs_getattr(const char *path, struct stat *st_data)
 {
     int res;
@@ -90,6 +81,7 @@ static int rofs_readlink(const char *path, char *buf, size_t size)
     return 0;
 }
 
+// ls
 static int rofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,off_t offset, struct fuse_file_info *fi)
 {
     DIR *dp;
@@ -121,6 +113,7 @@ static int rofs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,off_
     return 0;
 }
 
+// touch
 static int rofs_mknod(const char *path, mode_t mode, dev_t rdev)
 {
     (void)path;
@@ -129,6 +122,7 @@ static int rofs_mknod(const char *path, mode_t mode, dev_t rdev)
     return -EROFS;
 }
 
+// mkdir
 static int rofs_mkdir(const char *path, mode_t mode)
 {
     (void)path;
@@ -142,12 +136,16 @@ static int rofs_unlink(const char *path)
     return -EROFS;
 }
 
+
+// rmdir
 static int rofs_rmdir(const char *path)
 {
     (void)path;
     return -EROFS;
 }
 
+
+// ln -s
 static int rofs_symlink(const char *from, const char *to)
 {
     (void)from;
@@ -155,6 +153,7 @@ static int rofs_symlink(const char *from, const char *to)
     return -EROFS;
 }
 
+// rename
 static int rofs_rename(const char *from, const char *to)
 {
     (void)from;

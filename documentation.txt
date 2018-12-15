@@ -4,9 +4,10 @@ CONTENTS
 1- Installation
 2- Usage of hello.c
 3- Usage of rofs.c
-4- Implementation of Mirror Folder
-5- Further Stages
-6- Helpers
+4- Installation of html-tidy
+5- Implementation of Mirror Folder
+6- Further Stages
+7- Helpers
 
 INSTALLATION
 $ sudo apt install libfuse-dev
@@ -32,6 +33,11 @@ USAGE OF ROFS.C
 4) To unmount filesystem use "fusermount -u mount_point".
 
 mtab: This file lists all currently mounted filesystems.
+
+INSTALLATION OF HTML-TIDY
+1) $ sudo apt install libtidy-dev
+2) #include <tidy/tidy.h> #include <tidy/buffio.h>
+3) $ gcc tidy.c -ltidy
 
 COMPLETED STAGES
 1) Skim the slides and add comments to the source codes.
