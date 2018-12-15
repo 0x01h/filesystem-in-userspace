@@ -31,7 +31,7 @@ char *rw_path;
 // Translate a virtual path into its underlying filesystem path
 static char* translate_path(const char* path)
 {
-    printf("I'm translating your path!\n");
+    printf("translate_path was called!\n");
     char *rPath= malloc(sizeof(char)*(strlen(path)+strlen(rw_path)+1));
 
     strcpy(rPath,rw_path);
@@ -46,35 +46,42 @@ static char* translate_path(const char* path)
 // ls -l
 static int tidier_getattr(const char *path, struct stat *st_data)
 {
-    printf("I'm getting your attributes!\n");
+    printf("tidier_getattr was called!\n");
     int res;
     char *upath=translate_path(path);
 
     res = lstat(upath, st_data);
     free(upath);
+
     if(res == -1) {
         return -errno;
     }
+
     return 0;
 }
 
 static int tidier_readlink(const char *path, char *buf, size_t size)
 {
+    printf("tidier_readlink was called!\n");
     int res;
     char *upath=translate_path(path);
 
     res = readlink(upath, buf, size - 1);
     free(upath);
+
     if(res == -1) {
         return -errno;
     }
+
     buf[res] = '\0';
     return 0;
 }
 
 // ls
-static int tidier_readdir(const char *path, void *buf, fuse_fill_dir_t filler,off_t offset, struct fuse_file_info *fi)
+static int tidier_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
+                          off_t offset, struct fuse_file_info *fi)
 {
+    printf("tidier_readdir was called!\n");
     DIR *dp;
     struct dirent *de;
     int res;
@@ -82,14 +89,12 @@ static int tidier_readdir(const char *path, void *buf, fuse_fill_dir_t filler,of
     char *filename;
     char *file_extension;
     char *selected_extension = ' ';
-    char *html = 'html';
 
     (void) offset;
     (void) fi;
 
     char *upath=translate_path(path);
-    printf("FILE'S PATH (DIR): ");
-    printf("%s\n", upath);
+    printf("Directory path: %s\n", upath);
 
     dp = opendir(upath);
     free(upath);
@@ -104,18 +109,16 @@ static int tidier_readdir(const char *path, void *buf, fuse_fill_dir_t filler,of
         st.st_ino = de->d_ino;
         st.st_mode = de->d_type << 12;
 
-        if (filler(buf, de->d_name, &st, 0))
-            break;
-
-/*
+        // The logic below continue in loop when file doesn't have extension or extension doesn't start with 'h'.
+        // But still has to be improved, and gets unique: 144, error: -2 (No such file or directory), outsize: 16 error.
         filename = strdup(de->d_name);
-        printf("filename: %s\n", filename);
+        printf("Filename: %s\n", filename);
         while ((file_extension = strsep(&filename, ".")) != NULL) {
             if (counter == 0) {
                 counter++;
             }
             else if (counter == 1) {
-                printf("ext: %s", file_extension);
+                printf("File extension: %s\n", file_extension);
                 selected_extension = file_extension;
                 break;
             }
@@ -125,8 +128,13 @@ static int tidier_readdir(const char *path, void *buf, fuse_fill_dir_t filler,of
         }
 
         counter = 0;
-        printf("SELECTED: %s\n", selected_extension);
-*/
+        if ((strlen(selected_extension) > 0) && (selected_extension[0] == 'h'))
+            printf("Selected extension: %s\n", selected_extension);
+        else
+            continue;
+
+        if (filler(buf, de->d_name, &st, 0))
+            break;
 
     }
 
@@ -137,6 +145,7 @@ static int tidier_readdir(const char *path, void *buf, fuse_fill_dir_t filler,of
 // touch
 static int tidier_mknod(const char *path, mode_t mode, dev_t rdev)
 {
+    printf("tidier_mknod was called!\n");
     (void)path;
     (void)mode;
     (void)rdev;
@@ -146,6 +155,7 @@ static int tidier_mknod(const char *path, mode_t mode, dev_t rdev)
 // mkdir
 static int tidier_mkdir(const char *path, mode_t mode)
 {
+    printf("tidier_mkdir was called!\n");
     (void)path;
     (void)mode;
     return -EROFS;
@@ -154,6 +164,7 @@ static int tidier_mkdir(const char *path, mode_t mode)
 // rm
 static int tidier_unlink(const char *path)
 {
+    printf("tidier_unlink was called!\n");
     (void)path;
     return -EROFS;
 }
@@ -162,6 +173,7 @@ static int tidier_unlink(const char *path)
 // rmdir
 static int tidier_rmdir(const char *path)
 {
+    printf("tidier_rmdir was called!\n");
     (void)path;
     return -EROFS;
 }
@@ -170,6 +182,7 @@ static int tidier_rmdir(const char *path)
 // ln -s
 static int tidier_symlink(const char *from, const char *to)
 {
+    printf("tidier_symlink was called!\n");
     (void)from;
     (void)to;
     return -EROFS;
@@ -178,6 +191,7 @@ static int tidier_symlink(const char *from, const char *to)
 // rename
 static int tidier_rename(const char *from, const char *to)
 {
+    printf("tidier_rename was called!\n");
     (void)from;
     (void)to;
     return -EROFS;
@@ -186,6 +200,7 @@ static int tidier_rename(const char *from, const char *to)
 // ln  -l
 static int tidier_link(const char *from, const char *to)
 {
+    printf("tidier_link was called!\n");
     (void)from;
     (void)to;
     return -EROFS;
@@ -193,6 +208,7 @@ static int tidier_link(const char *from, const char *to)
 
 static int tidier_chmod(const char *path, mode_t mode)
 {
+    printf("tidier_chmod was called!\n");
     (void)path;
     (void)mode;
     return -EROFS;
@@ -201,6 +217,7 @@ static int tidier_chmod(const char *path, mode_t mode)
 
 static int tidier_chown(const char *path, uid_t uid, gid_t gid)
 {
+    printf("tidier_chown was called!\n");
     (void)path;
     (void)uid;
     (void)gid;
@@ -209,6 +226,7 @@ static int tidier_chown(const char *path, uid_t uid, gid_t gid)
 
 static int tidier_truncate(const char *path, off_t size)
 {
+    printf("tidier_truncate was called!\n");
     (void)path;
     (void)size;
     return -EROFS;
@@ -216,6 +234,7 @@ static int tidier_truncate(const char *path, off_t size)
 
 static int tidier_utime(const char *path, struct utimbuf *buf)
 {
+    printf("tidier_utime was called!\n");
     (void)path;
     (void)buf;
     return -EROFS;
@@ -223,6 +242,7 @@ static int tidier_utime(const char *path, struct utimbuf *buf)
 
 static int tidier_open(const char *path, struct fuse_file_info *finfo)
 {
+    printf("tidier_open was called!\n");
     int res;
 
     int flags = finfo->flags;
@@ -247,6 +267,7 @@ static int tidier_open(const char *path, struct fuse_file_info *finfo)
 
 static int tidier_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *finfo)
 {
+    printf("tidier_read was called!\n");
     int fd;
     int res;
     (void)finfo;
@@ -311,6 +332,7 @@ static int tidier_read(const char *path, char *buf, size_t size, off_t offset, s
 
 static int tidier_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *finfo)
 {
+    printf("tidier_write was called!\n");
     (void)path;
     (void)buf;
     (void)size;
@@ -321,6 +343,7 @@ static int tidier_write(const char *path, const char *buf, size_t size, off_t of
 
 static int tidier_statfs(const char *path, struct statvfs *st_buf)
 {
+    printf("tidier_statfs was called!\n");
     int res;
     char *upath=translate_path(path);
 
@@ -334,6 +357,7 @@ static int tidier_statfs(const char *path, struct statvfs *st_buf)
 
 static int tidier_release(const char *path, struct fuse_file_info *finfo)
 {
+    printf("tidier_release was called!\n");
     (void) path;
     (void) finfo;
     return 0;
@@ -341,6 +365,7 @@ static int tidier_release(const char *path, struct fuse_file_info *finfo)
 
 static int tidier_fsync(const char *path, int crap, struct fuse_file_info *finfo)
 {
+    printf("tidier_fsync was called!\n");
     (void) path;
     (void) crap;
     (void) finfo;
@@ -349,6 +374,7 @@ static int tidier_fsync(const char *path, int crap, struct fuse_file_info *finfo
 
 static int tidier_access(const char *path, int mode)
 {
+    printf("tidier_access was called!\n");
     int res;
     char *upath=translate_path(path);
 
@@ -368,6 +394,7 @@ static int tidier_access(const char *path, int mode)
  */
 static int tidier_setxattr(const char *path, const char *name, const char *value, size_t size, int flags)
 {
+    printf("tidier_setxattr was called!\n");
     (void)path;
     (void)name;
     (void)value;
@@ -381,6 +408,7 @@ static int tidier_setxattr(const char *path, const char *name, const char *value
  */
 static int tidier_getxattr(const char *path, const char *name, char *value, size_t size)
 {
+    printf("tidier_getxattr was called!\n");
     int res;
 
     char *upath=translate_path(path);
@@ -397,6 +425,7 @@ static int tidier_getxattr(const char *path, const char *name, char *value, size
  */
 static int tidier_listxattr(const char *path, char *list, size_t size)
 {
+    printf("tidier_listxattr was called!\n");
     int res;
 
     char *upath=translate_path(path);
@@ -414,6 +443,7 @@ static int tidier_listxattr(const char *path, char *list, size_t size)
  */
 static int tidier_removexattr(const char *path, const char *name)
 {
+    printf("tidier_removexattr was called!\n");
     (void)path;
     (void)name;
     return -EROFS;
