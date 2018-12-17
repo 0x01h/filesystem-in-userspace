@@ -91,11 +91,6 @@ static int tidier_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     DIR *dp;
     struct dirent *de;
     int res;
-    int counter = 0;
-    char *filename;
-    char *file_extension;
-    char *selected_extension = ' ';
-
     (void) offset;
     (void) fi;
 
@@ -114,30 +109,6 @@ static int tidier_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
         memset(&st, 0, sizeof(st));
         st.st_ino = de->d_ino;
         st.st_mode = de->d_type << 12;
-
-        // The logic below continue in loop when file doesn't have extension or extension doesn't start with 'h'.
-        // But still has to be improved, and gets unique: 144, error: -2 (No such file or directory), outsize: 16 error.
-        filename = strdup(de->d_name);
-        printf("Filename: %s\n", filename);
-        while ((file_extension = strsep(&filename, ".")) != NULL) {
-            if (counter == 0) {
-                counter++;
-            }
-            else if (counter == 1) {
-                printf("File extension: %s\n", file_extension);
-                selected_extension = file_extension;
-                break;
-            }
-            else {
-                break;
-            }
-        }
-
-        counter = 0;
-        if ((strlen(selected_extension) > 0) && (selected_extension[0] == 'h'))
-            printf("Selected extension: %s\n", selected_extension);
-        else
-            continue;
 
         if (filler(buf, de->d_name, &st, 0))
             break;
@@ -278,8 +249,13 @@ static int tidier_read(const char *path, char *buf, size_t size, off_t offset, s
     int fd;
     int res;
     (void)finfo;
+    char* filename;
+    char* file_extension;
+    char* selected_extension;
+    int counter = 0;
 
     printf("File path: %s\n", path);
+
     char *upath=translate_path(path);
     printf("Translated path: %s\n", upath);
 
@@ -296,44 +272,71 @@ static int tidier_read(const char *path, char *buf, size_t size, off_t offset, s
     }
     close(fd);
 
-  	TidyBuffer output = {0};
-  	TidyBuffer errbuf = {0};
-  	int rc = -1;
-  	Bool ok;
+    filename = strdup(path);
+    printf("Filename: %s\n", filename);
 
-  	TidyDoc tdoc = tidyCreate();                     // Initialize "document"
+    while ((file_extension = strsep(&filename, ".")) != NULL) {
+        if (counter == 0) {
+            counter++;
+        }
+        else if (counter == 1) {
+            printf("File extension: %s\n", file_extension);
+            selected_extension = file_extension;
+            break;
+        }
+        else {
+            break;
+        }
+    }
 
-	ok = tidyOptSetBool( tdoc, TidyXhtmlOut, yes );  // Convert to XHTML
-  	if ( ok )
-    		rc = tidySetErrorBuffer( tdoc, &errbuf );      // Capture diagnostics
-  	if ( rc >= 0 )
-    		rc = tidyParseString( tdoc, buf );           // Parse the input
-  	if ( rc >= 0 )
-    		rc = tidyCleanAndRepair( tdoc );               // Tidy it up!
-  	if ( rc >= 0 )
-    		rc = tidyRunDiagnostics( tdoc );               // Kvetch
-  	if ( rc > 1 )                                    // If error, force output.
-    		rc = ( tidyOptSetBool(tdoc, TidyForceOutput, yes) ? rc : -1 );
-	if ( rc >= 0 )
-       		 rc = tidySaveBuffer( tdoc, &output );        // Pretty Print
-		//önce bufı boşaltıp yeni sizea göre yer açmak gerekebilir.
-			//free(buf);
-			buf = output.bp;
-			//char * newSize = output.bp;
-			//buf = (char *)malloc(strlen(newSize));
-			//strcpy(buf, newSize);
-			//buf = malloc(sizeof(char)*strlen(newSize));
-			//uint sizer = strlen(newSize);
-    			//rc = tidySaveString( tdoc, buf, &sizer);          // tidy hali buf'a yazma(size = ?)
-		//or
-			//rc = tidySaveFile( tdoc, mirrorfilename);          // Doğrudan  mirror dosyaya yazma 
-		//or
-			//rc = tidySaveBuffer( tdoc, &amp;output );
+        counter = 0;
+        if ((strlen(selected_extension) > 0) && (selected_extension[0] == 'h')) {
+            printf("Selected extension: %s\n", selected_extension);
+            printf("HTML will be tidy!\n");
+            
+            TidyBuffer output = {0};
+  	        TidyBuffer errbuf = {0};
+  	        int rc = -1;
+          	Bool ok;
 
-			//strcpy(buf, newSize);
-  	tidyBufFree( &output );
-	tidyBufFree( &errbuf );
-  	tidyRelease( tdoc );
+            TidyDoc tdoc = tidyCreate();                     // Initialize "document"
+
+            ok = tidyOptSetBool( tdoc, TidyXhtmlOut, yes );  // Convert to XHTML
+            if ( ok )
+                    rc = tidySetErrorBuffer( tdoc, &errbuf );      // Capture diagnostics
+            if ( rc >= 0 )
+                    rc = tidyParseString( tdoc, buf );           // Parse the input
+            if ( rc >= 0 )
+                    rc = tidyCleanAndRepair( tdoc );               // Tidy it up!
+            if ( rc >= 0 )
+                    rc = tidyRunDiagnostics( tdoc );               // Kvetch
+            if ( rc > 1 )                                    // If error, force output.
+                    rc = ( tidyOptSetBool(tdoc, TidyForceOutput, yes) ? rc : -1 );
+            if ( rc >= 0 )
+                    rc = tidySaveBuffer( tdoc, &output );        // Pretty Print
+                //önce bufı boşaltıp yeni sizea göre yer açmak gerekebilir.
+                    //free(buf);
+                    buf = output.bp;
+                    //char * newSize = output.bp;
+                    //buf = (char *)malloc(strlen(newSize));
+                    //strcpy(buf, newSize);
+                    //buf = malloc(sizeof(char)*strlen(newSize));
+                    //uint sizer = strlen(newSize);
+                        //rc = tidySaveString( tdoc, buf, &sizer);          // tidy hali buf'a yazma(size = ?)
+                //or
+                    //rc = tidySaveFile( tdoc, mirrorfilename);          // Doğrudan  mirror dosyaya yazma 
+                //or
+                    //rc = tidySaveBuffer( tdoc, &amp;output );
+
+                    //strcpy(buf, newSize);
+            tidyBufFree( &output );
+            tidyBufFree( &errbuf );
+            tidyRelease( tdoc );
+        }
+
+        else {
+            printf("Not a HTML file, so will not go tidying process!");
+        }
 
     return res;
 }
