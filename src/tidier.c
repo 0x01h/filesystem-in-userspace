@@ -248,7 +248,7 @@ static int tidier_read(const char *path, char *buf, size_t size, off_t offset, s
     printf("tidier_read was called!\n");
     int fd;
     int res;
-    (void)finfo;
+    (void) finfo;
     char* filename;
     char* file_extension;
     char* selected_extension;
@@ -256,7 +256,7 @@ static int tidier_read(const char *path, char *buf, size_t size, off_t offset, s
 
     printf("File path: %s\n", path);
 
-    char *upath=translate_path(path);
+    char *upath = translate_path(path);
     printf("Translated path: %s\n", upath);
 
     fd = open(upath, O_RDONLY);
@@ -265,12 +265,6 @@ static int tidier_read(const char *path, char *buf, size_t size, off_t offset, s
         res = -errno;
         return res;
     }
-    res = pread(fd, buf, size, offset);
-
-    if(res == -1) {
-        res = -errno;
-    }
-    close(fd);
 
     filename = strdup(path);
     printf("Filename: %s\n", filename);
@@ -314,9 +308,12 @@ static int tidier_read(const char *path, char *buf, size_t size, off_t offset, s
                     rc = ( tidyOptSetBool(tdoc, TidyForceOutput, yes) ? rc : -1 );
             if ( rc >= 0 )
                     rc = tidySaveBuffer( tdoc, &output );        // Pretty Print
+                //*********************************** BUFFER DELIRIYOR!***********/
+                //*********************************** BUFFER'I KONTROL ETMEK LAZIM!*/
+                /*******************************************************************/
                 //önce bufı boşaltıp yeni sizea göre yer açmak gerekebilir.
                     //free(buf);
-                    buf = output.bp;
+                    
                     //char * newSize = output.bp;
                     //buf = (char *)malloc(strlen(newSize));
                     //strcpy(buf, newSize);
@@ -332,11 +329,20 @@ static int tidier_read(const char *path, char *buf, size_t size, off_t offset, s
             tidyBufFree( &output );
             tidyBufFree( &errbuf );
             tidyRelease( tdoc );
+
+            res = pread(fd, buf, size, offset);
         }
 
         else {
-            printf("Not a HTML file, so will not go tidying process!");
+            printf("Not a HTML file, so will not go tidying process!\n");
+            res = pread(fd, buf, size, offset);
         }
+    
+
+    if(res == -1) {
+        res = -errno;
+    }
+    close(fd);
 
     return res;
 }
