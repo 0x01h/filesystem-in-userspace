@@ -295,6 +295,9 @@ static int tidier_read(const char *path, char *buf, size_t size, off_t offset, s
             TidyDoc tdoc = tidyCreate();                     // Initialize "document"
 
             ok = tidyOptSetBool( tdoc, TidyXhtmlOut, yes );  // Convert to XHTML
+            tidyOptSetInt(tdoc, TidyIndentContent, yes);
+            tidyOptSetInt( tdoc, TidyIndentSpaces, 4 );
+
             if ( ok )
                     rc = tidySetErrorBuffer( tdoc, &errbuf );      // Capture diagnostics
 			if (rc >= 0) {
