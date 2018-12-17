@@ -32,11 +32,9 @@ char *rw_path;
 static char* translate_path(const char* path)
 {
     printf("translate_path was called!\n");
-    printf("path: %s\n", path);
+    printf("Path: %s\n", path);
 
     char *rPath= malloc(sizeof(char)*(strlen(path)+strlen(rw_path)+1));
-
-    printf("rPath: %s\n", rPath);
 
     strcpy(rPath,rw_path);
 
@@ -46,7 +44,7 @@ static char* translate_path(const char* path)
 
     strcat(rPath,path);
 
-    printf("New rPath: %s\n", rPath);
+    printf("New path: %s\n", rPath);
     return rPath;
 }
 
