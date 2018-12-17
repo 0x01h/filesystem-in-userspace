@@ -32,14 +32,21 @@ char *rw_path;
 static char* translate_path(const char* path)
 {
     printf("translate_path was called!\n");
+    printf("path: %s\n", path);
+
     char *rPath= malloc(sizeof(char)*(strlen(path)+strlen(rw_path)+1));
 
+    printf("rPath: %s\n", rPath);
+
     strcpy(rPath,rw_path);
+
     if (rPath[strlen(rPath)-1]=='/') {
         rPath[strlen(rPath)-1]='\0';
     }
+
     strcat(rPath,path);
 
+    printf("New rPath: %s\n", rPath);
     return rPath;
 }
 
@@ -82,6 +89,7 @@ static int tidier_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
                           off_t offset, struct fuse_file_info *fi)
 {
     printf("tidier_readdir was called!\n");
+    printf("Directory path: %s\n", path);
     DIR *dp;
     struct dirent *de;
     int res;
@@ -94,7 +102,7 @@ static int tidier_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     (void) fi;
 
     char *upath=translate_path(path);
-    printf("Directory path: %s\n", upath);
+    printf("Directory translated path: %s\n", upath);
 
     dp = opendir(upath);
     free(upath);
@@ -254,6 +262,7 @@ static int tidier_open(const char *path, struct fuse_file_info *finfo)
     }
 
     char *upath=translate_path(path);
+    printf("Translated path: %s\n", upath);
 
     res = open(upath, flags);
 
@@ -272,9 +281,10 @@ static int tidier_read(const char *path, char *buf, size_t size, off_t offset, s
     int res;
     (void)finfo;
 
+    printf("File path: %s\n", path);
     char *upath=translate_path(path);
-    printf("FILE'S PATH: ");
-    printf("%s\n", *upath);
+    printf("Translated path: %s\n", upath);
+
     fd = open(upath, O_RDONLY);
     free(upath);
     if(fd == -1) {
@@ -344,8 +354,11 @@ static int tidier_write(const char *path, const char *buf, size_t size, off_t of
 static int tidier_statfs(const char *path, struct statvfs *st_buf)
 {
     printf("tidier_statfs was called!\n");
+    printf("File path (statfs): %s\n", path);
     int res;
     char *upath=translate_path(path);
+
+    printf("Translated path (statfs): %s\n", upath);
 
     res = statvfs(upath, st_buf);
     free(upath);
