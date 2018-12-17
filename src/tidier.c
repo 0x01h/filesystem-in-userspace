@@ -284,7 +284,8 @@ static int tidier_read(const char *path, char *buf, size_t size, off_t offset, s
     }
 
         counter = 0;
-        if ((strlen(selected_extension) > 0) && (selected_extension[0] == 'h')) {
+        if ((strlen(selected_extension) > 0) && (selected_extension[0] == 'h')
+        && (selected_extension[1] == 't') && (selected_extension[2] == 'm') && (selected_extension[3] == 'l')) {
             printf("Selected extension: %s\n", selected_extension);
             printf("HTML will be tidy!\n");
             
@@ -318,28 +319,13 @@ static int tidier_read(const char *path, char *buf, size_t size, off_t offset, s
 			if (rc >= 0) {
 				rc = tidySaveFile(tdoc, upath);        // Pretty Print
 				free(upath);
-				//*********************************** BUFFER DELIRIYOR!***********/
-				//*********************************** BUFFER'I KONTROL ETMEK LAZIM!*/
-				/*******************************************************************/
-				//önce bufı boşaltıp yeni sizea göre yer açmak gerekebilir.
-					//free(buf);
 
-					//char * newSize = output.bp;
-					//buf = (char *)malloc(strlen(newSize));
-					//strcpy(buf, newSize);
-					//buf = malloc(sizeof(char)*strlen(newSize));
-					//uint sizer = strlen(newSize);
-						//rc = tidySaveString( tdoc, buf, &sizer);          // tidy hali buf'a yazma(size = ?)
-				//or
-					//rc = tidySaveFile( tdoc, mirrorfilename);          // Doğrudan  mirror dosyaya yazma 
-				//or
-					//rc = tidySaveBuffer( tdoc, &amp;output );
-
-					//strcpy(buf, newSize);
 				res = pread(fd, buf, size, offset);
+
 				if (res == -1) {
 					res = -errno;
 				}
+
 				close(fd);
 				tidyBufFree(&errbuf);
 				tidyRelease(tdoc);
@@ -350,10 +336,12 @@ static int tidier_read(const char *path, char *buf, size_t size, off_t offset, s
             printf("Not a HTML file, so will not go tidying process!\n");
 			fd = open(upath, O_RDWR);
 			free(upath);
-			if (fd == -1) {
+			
+            if (fd == -1) {
 				res = -errno;
 				return res;
 			}
+
 			res = pread(fd, buf, size, offset);
         }
     
