@@ -260,7 +260,7 @@ static int tidier_read(const char *path, char *buf, size_t size, off_t offset, s
     printf("Translated path: %s\n", upath);
 
     fd = open(upath, O_RDONLY);
-    free(upath);
+    
     if(fd == -1) {
         res = -errno;
         return res;
@@ -288,7 +288,6 @@ static int tidier_read(const char *path, char *buf, size_t size, off_t offset, s
             printf("Selected extension: %s\n", selected_extension);
             printf("HTML will be tidy!\n");
             
-            TidyBuffer output = {0};
   	        TidyBuffer errbuf = {0};
   	        int rc = -1;
           	Bool ok;
@@ -298,44 +297,61 @@ static int tidier_read(const char *path, char *buf, size_t size, off_t offset, s
             ok = tidyOptSetBool( tdoc, TidyXhtmlOut, yes );  // Convert to XHTML
             if ( ok )
                     rc = tidySetErrorBuffer( tdoc, &errbuf );      // Capture diagnostics
-            if ( rc >= 0 )
-                    rc = tidyParseString( tdoc, buf );           // Parse the input
+			if (rc >= 0) {
+				fd = open(upath, O_RDWR);
+
+				if (fd == -1) {
+					res = -errno;
+					return res;
+				}
+				rc = tidyParseFile(tdoc, upath);           // Parse the input
+			}
             if ( rc >= 0 )
                     rc = tidyCleanAndRepair( tdoc );               // Tidy it up!
             if ( rc >= 0 )
                     rc = tidyRunDiagnostics( tdoc );               // Kvetch
             if ( rc > 1 )                                    // If error, force output.
                     rc = ( tidyOptSetBool(tdoc, TidyForceOutput, yes) ? rc : -1 );
-            if ( rc >= 0 )
-                    rc = tidySaveBuffer( tdoc, &output );        // Pretty Print
-                //*********************************** BUFFER DELIRIYOR!***********/
-                //*********************************** BUFFER'I KONTROL ETMEK LAZIM!*/
-                /*******************************************************************/
-                //önce bufı boşaltıp yeni sizea göre yer açmak gerekebilir.
-                    //free(buf);
-                    
-                    //char * newSize = output.bp;
-                    //buf = (char *)malloc(strlen(newSize));
-                    //strcpy(buf, newSize);
-                    //buf = malloc(sizeof(char)*strlen(newSize));
-                    //uint sizer = strlen(newSize);
-                        //rc = tidySaveString( tdoc, buf, &sizer);          // tidy hali buf'a yazma(size = ?)
-                //or
-                    //rc = tidySaveFile( tdoc, mirrorfilename);          // Doğrudan  mirror dosyaya yazma 
-                //or
-                    //rc = tidySaveBuffer( tdoc, &amp;output );
+			if (rc >= 0) {
+				rc = tidySaveFile(tdoc, upath);        // Pretty Print
+				free(upath);
+				//*********************************** BUFFER DELIRIYOR!***********/
+				//*********************************** BUFFER'I KONTROL ETMEK LAZIM!*/
+				/*******************************************************************/
+				//önce bufı boşaltıp yeni sizea göre yer açmak gerekebilir.
+					//free(buf);
 
-                    //strcpy(buf, newSize);
-            tidyBufFree( &output );
-            tidyBufFree( &errbuf );
-            tidyRelease( tdoc );
+					//char * newSize = output.bp;
+					//buf = (char *)malloc(strlen(newSize));
+					//strcpy(buf, newSize);
+					//buf = malloc(sizeof(char)*strlen(newSize));
+					//uint sizer = strlen(newSize);
+						//rc = tidySaveString( tdoc, buf, &sizer);          // tidy hali buf'a yazma(size = ?)
+				//or
+					//rc = tidySaveFile( tdoc, mirrorfilename);          // Doğrudan  mirror dosyaya yazma 
+				//or
+					//rc = tidySaveBuffer( tdoc, &amp;output );
 
-            res = pread(fd, buf, size, offset);
+					//strcpy(buf, newSize);
+				res = pread(fd, buf, size, offset);
+				if (res == -1) {
+					res = -errno;
+				}
+				close(fd);
+				tidyBufFree(&errbuf);
+				tidyRelease(tdoc);
+			}
         }
 
         else {
             printf("Not a HTML file, so will not go tidying process!\n");
-            res = pread(fd, buf, size, offset);
+			fd = open(upath, O_RDWR);
+			free(upath);
+			if (fd == -1) {
+				res = -errno;
+				return res;
+			}
+			res = pread(fd, buf, size, offset);
         }
     
 
