@@ -52,5 +52,5 @@ Mkfile.old
 dkms.conf
 
 # IDE styles
-.idea/
+\.idea/
 \.vscode/
