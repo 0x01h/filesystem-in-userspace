@@ -23,7 +23,7 @@ static const char* tidierVersion = "1.0.0";
 #include <unistd.h>
 #include <fuse.h> // include fuse library functions
 #include <tidy/tidy.h>  // html-tidy library functions
-#include <tidy/buffio.h>  // treat buffer as input/output
+#include <tidy/tidybuffio.h>  // treat buffer as input/output
 
 // Global to store our read-write path
 char *rw_path;
